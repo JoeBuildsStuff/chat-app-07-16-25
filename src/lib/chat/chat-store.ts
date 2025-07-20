@@ -52,6 +52,7 @@ interface ChatStore {
   // UI State
   isOpen: boolean
   isMinimized: boolean
+  isMaximized: boolean
   isLoading: boolean
   showHistory: boolean
   currentContext: PageContext | null
@@ -76,6 +77,7 @@ interface ChatStore {
   // UI State
   setOpen: (open: boolean) => void
   setMinimized: (minimized: boolean) => void
+  setMaximized: (maximized: boolean) => void
   setLoading: (loading: boolean) => void
   toggleChat: () => void
   setShowHistory: (show: boolean) => void
@@ -116,6 +118,7 @@ export const useChatStore = create<ChatStore>()(
       currentSessionId: null,
       isOpen: false,
       isMinimized: false,
+      isMaximized: false,
       isLoading: false,
       showHistory: false,
       currentContext: null,
@@ -336,11 +339,15 @@ export const useChatStore = create<ChatStore>()(
       
       // UI State
       setOpen: (open) => {
-        set({ isOpen: open, isMinimized: open ? false : get().isMinimized })
+        set({ isOpen: open, isMinimized: open ? false : get().isMinimized, isMaximized: open ? get().isMaximized : false })
       },
       
       setMinimized: (minimized) => {
-        set({ isMinimized: minimized, isOpen: minimized ? false : get().isOpen })
+        set({ isMinimized: minimized, isOpen: minimized ? false : get().isOpen, isMaximized: minimized ? false : get().isMaximized })
+      },
+      
+      setMaximized: (maximized) => {
+        set({ isMaximized: maximized, isOpen: maximized ? true : get().isOpen, isMinimized: maximized ? false : get().isMinimized })
       },
       
       setLoading: (loading) => {
@@ -348,8 +355,17 @@ export const useChatStore = create<ChatStore>()(
       },
       
       toggleChat: () => {
-        const { isOpen } = get()
-        set({ isOpen: !isOpen, isMinimized: false })
+        const { isOpen, isMaximized } = get()
+        if (!isOpen) {
+          // Open in normal mode
+          set({ isOpen: true, isMinimized: false, isMaximized: false })
+        } else if (!isMaximized) {
+          // Maximize
+          set({ isMaximized: true, isMinimized: false })
+        } else {
+          // Close
+          set({ isOpen: false, isMinimized: false, isMaximized: false })
+        }
       },
       
       setShowHistory: (show) => {

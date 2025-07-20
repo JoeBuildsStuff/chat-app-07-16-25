@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useEffect } from 'react'
+import React, { createContext, useContext } from 'react'
 import { useChatStore } from '@/lib/chat/chat-store'
 import type { ChatContextValue, ChatProviderProps } from '@/types/chat'
 
@@ -20,6 +20,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
     messages: store.messages,
     isOpen: store.isOpen,
     isMinimized: store.isMinimized,
+    isMaximized: store.isMaximized,
     currentContext: store.currentContext,
     
     // Session actions
@@ -38,6 +39,7 @@ export function ChatProvider({ children }: ChatProviderProps) {
     // UI state
     setOpen: store.setOpen,
     setMinimized: store.setMinimized,
+    setMaximized: store.setMaximized,
     toggleChat: store.toggleChat,
     showHistory: store.showHistory,
     setShowHistory: store.setShowHistory,

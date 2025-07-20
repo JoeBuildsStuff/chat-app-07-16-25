@@ -9,23 +9,28 @@ import { ChatHistory } from '@/components/chat/chat-history'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 export function ChatPanel() {
-  const { isOpen, isMinimized, showHistory } = useChatStore()
+  const { isOpen, isMinimized, isMaximized, showHistory } = useChatStore()
+
+  // Don't render if not open or minimized
+  if (!isOpen || isMinimized) {
+    return null
+  }
 
   return (
     <div 
       className={cn(
-        "fixed bottom-2 right-2 z-40",
-        "w-full sm:w-96 h-full sm:h-[600px]",
-        "bg-background border border-border rounded-2xl",
-        "shadow-2xl",
-        "flex flex-col",
-        "transition-all duration-300 ease-in-out",
-        // Slide-in animation from right
-        isOpen && !isMinimized 
-          ? "translate-x-0 opacity-100" 
-          : "translate-x-full opacity-0",
-        // Handle visibility
-        !isOpen && "pointer-events-none"
+        "z-40 bg-background border border-border shadow-2xl flex flex-col transition-all duration-300 ease-in-out",
+        // Maximized state - takes up right side of layout
+        isMaximized && [
+          "fixed top-0 right-0 h-full w-96",
+          "border-l border-t-0 border-r-0 border-b-0 rounded-none"
+        ],
+        // Normal state - floating panel
+        !isMaximized && [
+          "fixed bottom-2 right-2",
+          "w-full sm:w-96 h-full sm:h-[600px]",
+          "rounded-3xl shadow-2xl"
+        ]
       )}
     >
       {showHistory ? (

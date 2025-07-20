@@ -1,17 +1,44 @@
 'use client'
 
-import { X, Trash2, ChevronLeft, SquarePen, Download, Ellipsis } from 'lucide-react'
+import { X, Trash2, ChevronLeft, SquarePen, Download, Ellipsis, PanelRight, PictureInPicture2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useChatStore } from '@/lib/chat/chat-store'
 import { cn } from '@/lib/utils'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuGroup, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuShortcut } from '@/components/ui/dropdown-menu'
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuGroup, 
+  DropdownMenuTrigger, 
+  DropdownMenuSeparator, 
+  DropdownMenuShortcut, 
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem
+} from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { useState, useRef, useEffect } from 'react'
 
 export function ChatHeader() {
-  const { setOpen, setMinimized, clearMessages, setShowHistory, createSession, currentSession, updateSessionTitle } = useChatStore()
+  const { setOpen, setMinimized, setMaximized, isMaximized, clearMessages, setShowHistory, createSession, currentSession, updateSessionTitle } = useChatStore()
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [editTitle, setEditTitle] = useState('')
+  const [layoutMode, setLayoutMode] = useState<'floating' | 'inset'>(isMaximized ? 'inset' : 'floating')
+  const [showClearDialog, setShowClearDialog] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleClose = () => {
@@ -19,10 +46,15 @@ export function ChatHeader() {
     setMinimized(false)
   }
 
-  const handleClearChat = () => {
-    if (confirm('Are you sure you want to clear the chat history?')) {
-      clearMessages()
-    }
+
+
+  const handleConfirmClear = () => {
+    clearMessages()
+    setShowClearDialog(false)
+  }
+
+  const handleCancelClear = () => {
+    setShowClearDialog(false)
   }
 
   const handleNewChat = () => {
@@ -35,6 +67,19 @@ export function ChatHeader() {
 
   const handleShowHistory = () => {
     setShowHistory(true)
+  }
+
+  const handleLayoutChange = (mode: 'floating' | 'inset') => {
+    setLayoutMode(mode)
+    if (mode === 'inset') {
+      setMaximized(true)
+      setMinimized(false)
+    } else {
+      // For floating mode, keep it open but not maximized and not minimized
+      setMaximized(false)
+      setMinimized(false)
+      setOpen(true)
+    }
   }
 
   const handleTitleClick = () => {
@@ -142,11 +187,59 @@ export function ChatHeader() {
                 <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleClearChat}>
-                <Trash2 className="mr-2 size-4" />
-                Clear chat
-                <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  {layoutMode === 'inset' ? (
+                    <>
+                      <PanelRight className="mr-4 size-4 text-muted-foreground" />Inset
+                    </>
+                  ) : (
+                    <>
+                      <PictureInPicture2 className="mr-4 size-4 text-muted-foreground" />Floating
+                    </>
+                  )}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuRadioGroup value={layoutMode} onValueChange={(value) => handleLayoutChange(value as 'floating' | 'inset')}>
+                      <DropdownMenuRadioItem value="inset">
+                        <PanelRight className="size-4 shrink-0 text-muted-foreground" />
+                        Inset
+                        <DropdownMenuShortcut>⌘↑</DropdownMenuShortcut>
+                      </DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="floating">
+                        <PictureInPicture2 className="size-4 shrink-0 text-muted-foreground"  />
+                        Floating
+                        <DropdownMenuShortcut>⌘↓</DropdownMenuShortcut>
+                      </DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
+              <DropdownMenuSeparator />
+              <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <Trash2 className="mr-2 size-4" />
+                    Clear chat
+                    <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear Chat</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to clear the chat history? This action cannot be undone and will permanently remove all messages in this conversation.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={handleCancelClear}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleConfirmClear} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Clear
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>

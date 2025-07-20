@@ -1,18 +1,19 @@
 'use client'
 
 import { useState, useRef, KeyboardEvent } from 'react'
-import { Loader2, ArrowUp, CornerRightUp } from 'lucide-react'
+import { Loader2, CornerRightUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { useChat } from '@/hooks/use-chat'
 import { useChatStore } from '@/lib/chat/chat-store'
-import { cn } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export function ChatInput() {
   const [input, setInput] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { sendMessage } = useChat()
   const { isLoading } = useChatStore()
+  const [selectedModel, setSelectedModel] = useState('sonnet')
 
   const handleSend = async () => {
     const trimmedInput = input.trim()
@@ -52,8 +53,7 @@ export function ChatInput() {
 
   return (
     <div className="p-2 space-y-2">
-      <div className="flex gap-2 items-center">
-        <div className="flex-1">
+      <div className="flex gap-2 items-center relative">
           <Textarea
             ref={textareaRef}
             value={input}
@@ -61,28 +61,44 @@ export function ChatInput() {
             onKeyDown={handleKeyDown}
             placeholder="Ask me about your data..."
             disabled={isLoading}
-            className={cn(
-              "min-h-[40px] max-h-[120px]",
-              "resize-none",
-              "border-input",
-              "focus:border-primary",
-              "transition-colors"
-            )}
             rows={1}
+            className="resize-none rounded-xl border-none pb-12"
+            // pr-20 and pb-8 add right and bottom padding to avoid overlap with floating buttons
           />
-        </div>
-        
-        <Button
-          onClick={handleSend}
-          disabled={!input.trim() || isLoading}
-          size="icon"
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <CornerRightUp className="size-4 shrink-0" strokeWidth={1.5}/>
-          )}
-        </Button>
+          {/* Actions */}
+          <div className="flex gap-2 items-center absolute bottom-2 right-2">
+            {/* TODO: Enable model selection in the api route */}
+            <Select
+              value={selectedModel}
+              onValueChange={setSelectedModel}
+              disabled={isLoading}
+            >
+              <SelectTrigger size="sm" className="w-fit border-none text-muted-foreground" >
+                <SelectValue placeholder="Model" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="haiku">Haiku 3.5</SelectItem>
+                <SelectItem value="sonnet">Sonnet 4</SelectItem>
+                <SelectItem value="opus">Opus 4</SelectItem>
+                <SelectItem value="gemini">Gemini 2.5</SelectItem>
+                <SelectItem value="4o">4o</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Send button */}
+            <Button
+              onClick={handleSend}
+              disabled={!input.trim() || isLoading}
+              size="sm"
+              className="rounded-full border-none w-8"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CornerRightUp className="size-4 shrink-0" strokeWidth={1.5}/>
+              )}
+            </Button>
+          </div>
       </div>
     </div>
   )

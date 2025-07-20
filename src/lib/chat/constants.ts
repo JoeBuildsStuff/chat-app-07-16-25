@@ -22,7 +22,7 @@ export const CHAT_CONFIG = {
 // Chat UI dimensions and styling
 export const CHAT_UI = {
   // Panel dimensions
-  PANEL_WIDTH: 400,
+  PANEL_WIDTH: 384, // w-96 = 24rem = 384px
   PANEL_HEIGHT: 600,
   PANEL_MIN_HEIGHT: 300,
   
@@ -38,6 +38,14 @@ export const CHAT_UI = {
   BUBBLE_Z_INDEX: 1000,
   PANEL_Z_INDEX: 1001,
   OVERLAY_Z_INDEX: 999,
+  
+  // Chat states
+  STATES: {
+    CLOSED: 'closed',
+    MINIMIZED: 'minimized', 
+    NORMAL: 'normal',
+    MAXIMIZED: 'maximized'
+  }
 } as const
 
 // Message role types

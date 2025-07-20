@@ -1,19 +1,30 @@
 'use client'
 
-import { MessageCircle, X } from 'lucide-react'
+import { MessageSquare, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useChatStore } from '@/lib/chat/chat-store'
 import { cn } from '@/lib/utils'
 
 export function ChatBubble() {
-  const { isOpen, isMinimized, setOpen, setMinimized } = useChatStore()
+  const { isOpen, isMinimized, isMaximized, setOpen, setMinimized, setMaximized } = useChatStore()
   
   const handleToggle = () => {
-    if (isOpen && !isMinimized) {
-      setMinimized(true)
-    } else {
+    if (!isOpen) {
+      // Open in normal mode
       setOpen(true)
       setMinimized(false)
+      setMaximized(false)
+    } else if (isMinimized) {
+      // Restore to normal mode
+      setMinimized(false)
+      setMaximized(false)
+    } else if (!isMaximized) {
+      // Maximize
+      setMaximized(true)
+    } else {
+      // Minimize when maximized
+      setMinimized(true)
+      setMaximized(false)
     }
   }
 
@@ -21,15 +32,22 @@ export function ChatBubble() {
     e.stopPropagation()
     setOpen(false)
     setMinimized(false)
+    setMaximized(false)
   }
 
-  // If chat is open and not minimized, don't show the bubble
-  if (isOpen && !isMinimized) {
+  // Show bubble when chat is closed or minimized
+  const showBubble = !isOpen || isMinimized
+
+  if (!showBubble) {
     return null
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className={cn(
+      "fixed bottom-6 right-6 z-50",
+      // Adjust position when maximized to avoid overlap
+      isMaximized && "right-[25rem]"
+    )}>
       {/* Main bubble button */}
       <div 
         className={cn(
@@ -43,7 +61,7 @@ export function ChatBubble() {
           variant="outline"
           className="rounded-full size-12"
         >
-          <MessageCircle className="size-6 shrink-0" strokeWidth={1.5}/>
+          <MessageSquare className="size-6 shrink-0" strokeWidth={1.5}/>
         </Button>
         
         {/* Close button when minimized */}
@@ -76,7 +94,7 @@ export function ChatBubble() {
         "pointer-events-none",
         "whitespace-nowrap"
       )}>
-        {isMinimized ? 'Open Chat' : 'Start Conversation'}
+        {isMinimized ? 'Restore Chat' : 'Start Conversation'}
       </div>
     </div>
   )

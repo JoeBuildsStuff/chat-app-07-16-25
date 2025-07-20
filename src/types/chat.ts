@@ -34,6 +34,7 @@ export interface ChatContextValue {
   messages: ChatMessage[]
   isOpen: boolean
   isMinimized: boolean
+  isMaximized: boolean
   currentContext: PageContext | null
   
   // Session actions
@@ -52,6 +53,7 @@ export interface ChatContextValue {
   // UI State
   setOpen: (open: boolean) => void
   setMinimized: (minimized: boolean) => void
+  setMaximized: (maximized: boolean) => void
   toggleChat: () => void
   showHistory: boolean
   setShowHistory: (show: boolean) => void
