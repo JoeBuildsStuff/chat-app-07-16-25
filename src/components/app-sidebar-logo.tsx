@@ -16,7 +16,7 @@ return (
               <Bird className="size-6" strokeWidth={1.5}/>
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">My App</span>
+              <span className="truncate font-semibold">Chat App</span>
               <span className="truncate text-xs">by me</span>
             </div>
           </SidebarMenuButton>
