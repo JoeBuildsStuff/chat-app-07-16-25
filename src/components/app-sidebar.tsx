@@ -13,7 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Building2, Plus, Users } from "lucide-react"
+import { Building2, Calendar, FileText, Plus, Users } from "lucide-react"
 import { SidebarLogo } from "./app-sidebar-logo"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -32,6 +32,14 @@ export function AppSidebar() {
     console.log("Create company clicked")
   }
 
+  const handleCreateNote = () => {
+    console.log("Create note clicked")
+  }
+
+  const handleCreateMeeting = () => {
+    console.log("Create meeting clicked")
+  }
+
 
   const navigationItems = [
     {
@@ -48,6 +56,21 @@ export function AppSidebar() {
       action: handleCreateCompany,
       actionAriaLabel: "Create new company",
     },
+    {
+      label: "Note",
+      href: "/workspace/note",
+      icon: FileText,
+      action: handleCreateNote,
+      actionAriaLabel: "Create new note",
+    },
+    {
+      label: "Meeting",
+      href: "/workspace/meeting",
+      icon: Calendar,
+      action: handleCreateMeeting,
+      actionAriaLabel: "Create new meeting",
+    },
+
   ]
 
 
