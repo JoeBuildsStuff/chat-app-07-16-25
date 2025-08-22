@@ -270,38 +270,90 @@ export function ChatInput() {
         {attachments.length > 0 && (
           <div className="w-full p-2">
             <div className="flex w-full flex-col">
-              <div className="flex gap-4 overflow-x-auto pt-2 pb-1">
-                {attachments.map((attachment) => (
-                  <div
-                    key={attachment.id}
-                    className="bg-background relative flex flex-col rounded-md border group min-w-[120px] max-w-[120px] flex-shrink-0"
+                          <div className="flex gap-4 overflow-x-auto pt-2 pb-1">
+              {attachments.map((attachment) => (
+                <div
+                  key={attachment.id}
+                  className="bg-background relative flex flex-col rounded-md border group min-w-[120px] max-w-[120px] flex-shrink-0 cursor-pointer"
+                  onClick={() => openAttachmentModal(attachment)}
+                >
+                  {getFilePreview(attachment)}
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeAttachment(attachment.id)
+                    }}
+                    size="icon"
+                    variant="secondary"
+                    className="absolute -top-2 -right-2 size-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    aria-label="Remove file"
+                    disabled={isLoading}
                   >
-                    {getFilePreview(attachment)}
-                    <Button
-                      onClick={() => removeAttachment(attachment.id)}
-                      size="icon"
-                      variant="secondary"
-                      className="absolute -top-2 -right-2 size-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                      aria-label="Remove file"
-                      disabled={isLoading}
-                    >
-                      <X className="size-3.5" />
-                    </Button>
-                    <div className="flex min-w-0 flex-col gap-0.5 border-t p-2">
-                      <p className="truncate text-[11px] font-medium">
-                        {attachment.name}
-                      </p>
-                      <p className="text-muted-foreground truncate text-[10px]">
-                        {formatFileSize(attachment.size)}
-                      </p>
-                    </div>
+                    <X className="size-3.5" />
+                  </Button>
+                  <div className="flex min-w-0 flex-col gap-0.5 border-t p-2">
+                    <p className="truncate text-[11px] font-medium">
+                      {attachment.name}
+                    </p>
+                    <p className="text-muted-foreground truncate text-[10px]">
+                      {formatFileSize(attachment.size)}
+                    </p>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
+            </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Attachment Preview Modal */}
+      <Dialog open={!!selectedAttachment} onOpenChange={closeAttachmentModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <div className="relative">
+            {selectedAttachment && (
+              <div className="flex flex-col">
+                {/* File Header */}
+                <div className="flex items-center gap-3 p-4 border-b">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-medium truncate">
+                      {selectedAttachment.name}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedAttachment.type} • {formatFileSize(selectedAttachment.size)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* File Content */}
+                <div className="flex-1 overflow-auto">
+                  {selectedAttachment.type.startsWith('image/') ? (
+                    <div className="flex items-center justify-center p-4">
+                      <img
+                        src={URL.createObjectURL(selectedAttachment.file)}
+                        alt={selectedAttachment.name}
+                        className="max-w-full max-h-[70vh] object-contain rounded-lg"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center p-8">
+                      <div className="text-center">
+                        {getFileIcon(selectedAttachment)}
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          Preview not available for this file type
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {selectedAttachment.name}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 
