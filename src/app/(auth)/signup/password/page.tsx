@@ -1,10 +1,10 @@
 import Link from 'next/link';
-import { signUpWithPassword } from '/actions/auth'; // Changed from signInWithPassword
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "/components/ui/card";
-import { Button } from "/components/ui/button";
-import { Label } from "/components/ui/label";
-import { Input } from "/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "/components/ui/alert";
+import { signUpWithPassword } from '@/actions/auth'; // Changed from signInWithPassword
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, ArrowLeft, Mail } from "lucide-react";
 
 export default async function SignupPage({

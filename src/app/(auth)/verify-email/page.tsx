@@ -1,10 +1,10 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 
 import Link from "next/link";
-import { signInWithMagicLink } from '/actions/auth';
+import { signInWithMagicLink } from '@/actions/auth';
 import { ArrowLeft, Mail, RotateCcw } from "lucide-react";
-import { Button } from "/components/ui/button";
+import { Button } from "@/components/ui/button";
 
 
 export default async function VerifyEmailPage({

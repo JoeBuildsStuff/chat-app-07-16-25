@@ -1,8 +1,8 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "/components/ui/card";
-import { Button } from "/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ArrowLeft, Mail, RotateCcw } from "lucide-react";
 import Link from "next/link";
-import { requestPasswordReset } from '/actions/auth'; // For resend functionality
+import { requestPasswordReset } from '@/actions/auth'; // For resend functionality
 
 export default async function CheckEmailForPasswordResetPage({
   searchParams,

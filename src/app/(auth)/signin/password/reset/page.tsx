@@ -1,11 +1,11 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
-import { Label } from "/components/ui/label";
-import { Input } from "/components/ui/input";
-import { Button } from "/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "/components/ui/alert";
-import { signInWithMagicLink, requestPasswordReset } from "/actions/auth";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { signInWithMagicLink, requestPasswordReset } from "@/actions/auth";
 
 export default async function PasswordPage({
   searchParams,

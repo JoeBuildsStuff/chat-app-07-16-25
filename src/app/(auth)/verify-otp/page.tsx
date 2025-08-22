@@ -1,14 +1,14 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "/components/ui/card";
-import { Button } from "/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSeparator,
   InputOTPSlot,
-} from "/components/ui/input-otp"
+} from "@/components/ui/input-otp"
 import { ArrowLeft, KeyRound } from "lucide-react";
 import Link from "next/link";
-import { createClient } from '/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
 
