@@ -1,13 +1,27 @@
 import { createClient } from "@/lib/supabase/server"
 import { parseSearchParams, SearchParams } from "@/lib/data-table"
-import { NoteWithRelations } from "./validations"
+import { TaskWithRelations } from "./validations"
 import { PostgrestError } from "@supabase/supabase-js"
 import { Person } from "../../person/_lib/validations"
 import { Meeting } from "../../meeting/_lib/validations"
-import { Company } from "../../company/_lib/validations"
 
-export async function getNotes(searchParams: SearchParams): Promise<{
-  data: NoteWithRelations[],
+export async function getTask(id: string): Promise<{
+  data: TaskWithRelations | null,
+  error: PostgrestError | null
+}> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .schema("registry")
+    .from("task")
+    .select("*, meetings(id, title), contacts!assigned_to_contact_id(id, first_name, last_name)")
+    .eq("id", id)
+    .single()
+  
+  return { data: data ?? null, error }
+}
+
+export async function getTasks(searchParams: SearchParams): Promise<{
+  data: TaskWithRelations[],
   count: number,
   error: PostgrestError | null
 }> {
@@ -24,12 +38,12 @@ export async function getNotes(searchParams: SearchParams): Promise<{
 
   let query = supabase
     .schema("registry")
-    .from("notes")
-    .select("*, meetings(id, title), contacts(id, first_name, last_name)", { count: "exact" })
+    .from("task")
+    .select("*, meetings(id, title), contacts!assigned_to_contact_id(id, first_name, last_name)", { count: "exact" })
 
   // Sorting
   if (sort.length > 0) {
-    sort.forEach((s: { id: string; desc: boolean }) => {
+    sort.forEach(s => {
       query = query.order(s.id, { ascending: !s.desc })
     })
   } else {
@@ -37,7 +51,7 @@ export async function getNotes(searchParams: SearchParams): Promise<{
   }
 
   // Filtering
-  filters.forEach((filter: { id: string; value: unknown }) => {
+  filters.forEach(filter => {
     const { id: columnId, value: filterValue } = filter
     if (typeof filterValue === 'object' && filterValue !== null && 'operator' in filterValue) {
       const { operator, value } = filterValue as { operator: string, value: unknown }
@@ -95,27 +109,8 @@ export async function getNotes(searchParams: SearchParams): Promise<{
   const { data, count, error } = await query
 
   return {
-    data: (data as NoteWithRelations[]) || [],
+    data: (data as TaskWithRelations[]) || [],
     count: count ?? 0,
-    error
-  }
-}
-
-export async function getNote(id: string): Promise<{
-  data: NoteWithRelations | null,
-  error: PostgrestError | null
-}> {
-  const supabase = await createClient()
-  
-  const { data, error } = await supabase
-    .schema("registry")
-    .from("notes")
-    .select("*, meetings(id, title), contacts(id, first_name, last_name)")
-    .eq("id", id)
-    .single()
-
-  return {
-    data: data as NoteWithRelations | null,
     error
   }
 }
@@ -146,20 +141,6 @@ export async function getLinkableMeetings(): Promise<{
         .from("meetings")
         .select("id, title")
         .order("title", { ascending: true })
-    
-    return { data: data ?? [], error }
-}
-
-export async function getAvailableCompanies(): Promise<{
-  data: Pick<Company, "id" | "name">[],
-  error: PostgrestError | null
-}> {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-        .schema("registry")
-        .from("companies")
-        .select("id, name")
-        .order("name", { ascending: true })
     
     return { data: data ?? [], error }
 }

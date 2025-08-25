@@ -46,9 +46,14 @@ export const columns: ColumnDef<MeetingWithRelations>[] = [
     cell: ({ row }) => {
       const title = row.getValue("title") as string
       return (
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{title || "—"}</span>
-        </div>
+        <Badge 
+        key={row.original.id}
+        variant="green" 
+        className="text-sm font-normal"
+        href={`/workspace/meeting/${row.original.id}`}
+      >
+        {title || "Untitled Meeting"}
+      </Badge>
       )
     },
     meta: {
@@ -176,16 +181,18 @@ export const columns: ColumnDef<MeetingWithRelations>[] = [
       }
       
       return (
-        <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex items-center gap-3 flex-wrap">
           {attendees.map((attendee) => {
             // Determine the display name
             let displayName = "Unknown"
+            let contactId = null
             
             if (attendee.contact) {
               // Use contact information if available
               const firstName = attendee.contact.first_name || ""
               const lastName = attendee.contact.last_name || ""
               displayName = `${firstName} ${lastName}`.trim() || "Unknown Contact"
+              contactId = attendee.contact.id
             } else if (attendee.external_name) {
               // Use external name if no contact linked
               displayName = attendee.external_name
@@ -194,15 +201,28 @@ export const columns: ColumnDef<MeetingWithRelations>[] = [
               displayName = attendee.external_email
             }
             
-            return (
-              <Badge 
-                key={attendee.id} 
-                variant="secondary" 
-                className="text-xs font-normal"
-              >
-                {displayName}
-              </Badge>
-            )
+            if (contactId) {
+              return (
+                <Badge 
+                  key={attendee.id}
+                  variant="blue" 
+                  className="text-sm font-normal"
+                  href={`/workspace/person/${contactId}`}
+                >
+                  {displayName}
+                </Badge>
+              )
+            } else {
+              return (
+                <Badge 
+                  key={attendee.id} 
+                  variant="secondary" 
+                  className="text-sm font-normal"
+                >
+                  {displayName}
+                </Badge>
+              )
+            }
           })}
         </div>
       )

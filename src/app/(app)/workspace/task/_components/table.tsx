@@ -1,20 +1,20 @@
 import { columns } from "./columns"
 import { DataTable } from "@/components/data-table/data-table"
 import { parseSearchParams, SearchParams } from "@/lib/data-table"
-import { getNotes } from "../_lib/queries"
-import { deleteNotes, createNote, updateNote } from "../_lib/actions"
-import { NoteAddForm, NoteEditForm } from "./form-wrapper"
+import { getTasks } from "../_lib/queries"
+import { deleteTasks, createTask, updateTask, multiUpdateTasks } from "../_lib/actions"
+import { TaskAddForm, TaskEditForm, TaskMultiEditForm } from "./form-wrapper"
 import { ColumnDef } from "@tanstack/react-table"
 import { TableWithPageContext } from "@/components/chat/table-with-context"
 
-interface DataTableNoteProps {
+interface DataTableTaskProps {
   searchParams?: SearchParams
 }
 
-export default async function DataTableNote({ 
+export default async function DataTableTask({ 
   searchParams = {} 
-}: DataTableNoteProps) {
-  const { data, count, error } = await getNotes(searchParams)
+}: DataTableTaskProps) {
+  const { data, count, error } = await getTasks(searchParams)
   const { pagination } = parseSearchParams(searchParams)
 
   if (error) {
@@ -26,7 +26,7 @@ export default async function DataTableNote({
   const initialState = {
     ...parseSearchParams(searchParams),
     columnVisibility: {
-      content: false,
+      description: false,
     },
   }
 
@@ -34,22 +34,30 @@ export default async function DataTableNote({
   const tableData = data as unknown as Record<string, unknown>[]
   const tableColumns = columns as ColumnDef<Record<string, unknown>, unknown>[]
   
-  const tableDeleteAction = deleteNotes as (ids: string[]) => Promise<{ success: boolean; error?: string; deletedCount?: number }>
-  const tableCreateAction = createNote as unknown as (data: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>
-  const tableUpdateActionSingle = updateNote as unknown as (id: string, data: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>
+  const tableDeleteAction = deleteTasks as (ids: string[]) => Promise<{ success: boolean; error?: string; deletedCount?: number }>
+  const tableCreateAction = createTask as unknown as (data: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>
+  const tableUpdateActionSingle = updateTask as unknown as (id: string, data: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>
+  const tableUpdateActionMulti = multiUpdateTasks as unknown as (ids: string[], data: Record<string, unknown>) => Promise<{ success: boolean; error?: string; updatedCount?: number }>
   
   // Cast the custom forms to match expected types
-  const AddForm = NoteAddForm as React.ComponentType<{
+  const AddForm = TaskAddForm as React.ComponentType<{
     onSuccess?: () => void
     onCancel?: () => void
     createAction?: (data: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>
   }>
   
-  const EditFormSingle = NoteEditForm as React.ComponentType<{
+  const EditFormSingle = TaskEditForm as React.ComponentType<{
     data: Record<string, unknown>
     onSuccess?: () => void
     onCancel?: () => void
     updateAction?: (id: string, data: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>
+  }>
+
+  const EditFormMulti = TaskMultiEditForm as React.ComponentType<{
+    selectedCount: number
+    onSuccess?: () => void
+    onCancel?: () => void
+    updateActionMulti?: (ids: string[], data: Record<string, unknown>) => Promise<{ success: boolean; error?: string; updatedCount?: number }>
   }>
 
   return (
@@ -62,8 +70,10 @@ export default async function DataTableNote({
         deleteAction={tableDeleteAction}
         createAction={tableCreateAction}
         updateActionSingle={tableUpdateActionSingle}
+        updateActionMulti={tableUpdateActionMulti}
         customAddForm={AddForm}
         customEditFormSingle={EditFormSingle}
+        customEditFormMulti={EditFormMulti}
       />
     </TableWithPageContext>
   )

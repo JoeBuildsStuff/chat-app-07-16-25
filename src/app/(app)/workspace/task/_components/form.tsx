@@ -1,14 +1,14 @@
 "use client";
 
-import { Type, Calendar, Users } from "lucide-react";
+import { Calendar, User, Milestone, CalendarIcon, Type } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Person } from "../../person/_lib/validations";
 import { Meeting } from "../../meeting/_lib/validations";
-import { Company } from "../../company/_lib/validations";
-import { Label } from "@/components/ui/label";
+
 import SelectSearchable from "@/components/ui/select-searchable";
-import Tiptap from "@/components/tiptap/tiptap";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import PersonForm from "../../person/_components/form";
@@ -16,43 +16,55 @@ import MeetingForm from "../../meeting/_components/form";
 import { createPerson } from "../../person/_lib/actions";
 import { createMeeting } from "../../meeting/_lib/actions";
 import { toast } from "sonner";
+import {
+  Button as RacButton,
+  DatePicker,
+  Group,
+  Popover,
+} from "react-aria-components";
+import { Calendar as CalendarRac } from "@/components/ui/calendar-rac";
+import { DateInput } from "@/components/ui/datefield-rac";
+import { parseDate } from "@internationalized/date";
+import Tiptap from "@/components/tiptap/tiptap";
 
-type ContactForNote = Pick<Person, "id" | "first_name" | "last_name">
-type MeetingForNote = Pick<Meeting, "id" | "title">
+type ContactForTask = Pick<Person, "id" | "first_name" | "last_name">
+type MeetingForTask = Pick<Meeting, "id" | "title">
 
-export interface NoteFormProps {
+export interface TaskFormProps {
     initialData?: {
-        content?: string;
-        contact_id?: string;
-        meeting_id?: string;
         title?: string;
+        description?: string;
+        status?: string;
+        due_date?: string;
+        assigned_to_contact_id?: string;
+        meeting_id?: string;
     };
     onChange?: (data: {
         title: string;
-        content: string;
-        contact_id: string;
+        description: string;
+        status: string;
+        due_date: string;
+        assigned_to_contact_id: string;
         meeting_id: string;
     }) => void;
     className?: string;
-    availableContacts?: ContactForNote[];
-    availableMeetings?: MeetingForNote[];
-    availableCompanies?: Company[];
+    availableContacts?: ContactForTask[];
+    availableMeetings?: MeetingForTask[];
 }
 
-export default function NoteForm({
+export default function TaskForm({
     initialData = {},
     onChange,
     className,
     availableContacts = [],
-    availableMeetings = [],
-    availableCompanies = []
-}: NoteFormProps = {}) {
-    console.log("NoteForm received props:", { availableContacts, availableMeetings, availableCompanies })
-    
-    const [content, setContent] = useState(initialData.content || "");
-    const [contact, setContact] = useState(initialData.contact_id || "");
-    const [meeting, setMeeting] = useState(initialData.meeting_id || "");
+    availableMeetings = []
+}: TaskFormProps = {}) {
     const [title, setTitle] = useState(initialData.title || "");
+    const [description, setDescription] = useState(initialData.description || "");
+    const [status, setStatus] = useState(initialData.status || "");
+    const [dueDate, setDueDate] = useState(initialData.due_date || "");
+    const [assignee, setAssignee] = useState(initialData.assigned_to_contact_id || "");
+    const [meeting, setMeeting] = useState(initialData.meeting_id || "");
     const [addPersonDialogOpen, setAddPersonDialogOpen] = useState(false);
     const [addMeetingDialogOpen, setAddMeetingDialogOpen] = useState(false);
     const [contacts, setContacts] = useState(availableContacts);
@@ -96,12 +108,10 @@ export default function NoteForm({
     };
 
     useEffect(() => {
-        console.log("Setting contacts in NoteForm:", availableContacts)
         setContacts(availableContacts);
     }, [availableContacts]);
 
     useEffect(() => {
-        console.log("Setting meetings in NoteForm:", availableMeetings)
         setMeetings(availableMeetings);
     }, [availableMeetings]);
 
@@ -109,12 +119,17 @@ export default function NoteForm({
         if (onChange) {
             onChange({
                 title,
-                content,
-                contact_id: contact,
+                description,
+                status,
+                due_date: dueDate,
+                assigned_to_contact_id: assignee,
                 meeting_id: meeting,
             });
         }
-    }, [title, content, contact, meeting, onChange]);
+    }, [title, description, status, dueDate, assignee, meeting, onChange]);
+
+    // Convert date string to DateValue for React Aria
+    const dueDateValue = dueDate ? parseDate(dueDate) : null;
 
     // Transform data for SelectSearchable
     const contactOptions = contacts?.map(c => ({
@@ -158,7 +173,7 @@ export default function NoteForm({
                 setContacts(prev => [...prev, newContact]);
                 
                 // Select the newly created person
-                setContact(result.data.id);
+                setAssignee(result.data.id);
                 
                 // Reset form and close dialog
                 setPersonFormData({
@@ -282,33 +297,87 @@ export default function NoteForm({
     };
 
     return (
-        <div className={cn("@container flex flex-col gap-1 text-foreground w-full", className)}>
-            <div className="flex items-center gap-2">
-                <div className="flex items-start gap-2 text-muted-foreground min-w-[5rem] pt-1">
-                    <Type className="size-4 shrink-0" />
-                    <Label htmlFor="title">Title</Label>
+        <div className={cn("@container flex flex-col gap-4 text-foreground w-full", className)}>
+
+            {/* Title */}
+            <div className="flex items-center gap-2 justify-between">
+                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
+                    <Type className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Title</span>
                 </div>
-                <input
-                    className="w-full min-w-0 text-left hover:bg-secondary rounded-md py-2 px-2 truncate" 
-                    placeholder="Enter note title..."
+                <Input 
+                    className="w-full"
+                    placeholder="Enter task title..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                 />
             </div>
-            <div className="flex items-center gap-2">
-                <div className="flex items-start gap-2 text-muted-foreground min-w-[5rem] pt-1">
-                    <Users className="size-4 shrink-0" />
-                    <Label htmlFor="people">People</Label>
+
+            {/* Status */}
+            <div className="flex items-center gap-2 justify-between">
+                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
+                    <Milestone className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Status</span>
+                </div>
+                <ToggleGroup 
+                    variant="outline" 
+                    type="single" 
+                    value={status} 
+                    onValueChange={(value) => value && setStatus(value)}
+                    className="flex items-center w-full text-xs"
+                >
+                    <ToggleGroupItem value="TO_DO" className="text-xs">To Do</ToggleGroupItem>
+                    <ToggleGroupItem value="IN_PROGRESS" className="text-xs">In Progress</ToggleGroupItem>
+                    <ToggleGroupItem value="DONE" className="text-xs">Done</ToggleGroupItem>
+                    <ToggleGroupItem value="CANCELLED" className="text-xs">Cancelled</ToggleGroupItem>
+                </ToggleGroup>
+            </div>
+
+            {/* Due Date */}
+            <div className="flex items-center gap-2 justify-between">
+                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
+                    <Calendar className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Due Date</span>
+                </div>
+                <DatePicker 
+                    className="w-full"
+                    value={dueDateValue}
+                    onChange={(date) => setDueDate(date ? date.toString() : "")}
+                >
+                    <div className="flex">
+                        <Group className="w-full">
+                            <DateInput className="pe-9" />
+                        </Group>
+                        <RacButton className="text-muted-foreground/80 hover:text-foreground data-focus-visible:border-ring data-focus-visible:ring-ring/50 z-10 -ms-9 -me-px flex w-9 items-center justify-center rounded-e-md transition-[color,box-shadow] outline-none data-focus-visible:ring-[3px]">
+                            <CalendarIcon size={16} />
+                        </RacButton>
+                    </div>
+                    <Popover
+                        className="bg-background text-popover-foreground data-entering:animate-in data-exiting:animate-out data-[entering]:fade-in-0 data-[exiting]:fade-out-0 data-[entering]:zoom-in-95 data-[exiting]:zoom-out-95 data-[placement=bottom]:slide-in-from-top-2 data-[placement=left]:slide-in-from-right-2 data-[placement=right]:slide-in-from-left-2 data-[placement=top]:slide-in-from-bottom-2 z-50 rounded-lg border shadow-lg outline-hidden"
+                        offset={4}
+                    >
+                        <Dialog>
+                            <CalendarRac />
+                        </Dialog>
+                    </Popover>
+                </DatePicker>
+            </div>
+
+            {/* Assignee */}
+            <div className="flex items-center gap-2 justify-between">
+                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
+                    <User className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Assignee</span>
                 </div>
                 <SelectSearchable
-                    value={contact}
-                    onValueChange={setContact}
+                    value={assignee}
+                    onValueChange={setAssignee}
                     options={contactOptions}
-                    placeholder="Select contact..."
+                    placeholder="Select assignee..."
                     searchPlaceholder="Search contacts..."
                     emptyText="No contact found."
                     showBadge={true}
-                    badgeVariant="outline"
+                    badgeVariant="blue"
                     allowCreate={true}
                     createText="Add Person"
                     onCreateClick={() => setAddPersonDialogOpen(true)}
@@ -316,10 +385,12 @@ export default function NoteForm({
                     navigationRoute="/workspace/person"
                 />
             </div>
-            <div className="flex items-center gap-2">
-                <div className="flex items-start gap-2 text-muted-foreground min-w-[5rem] pt-1">
-                    <Calendar className="size-4 shrink-0" />
-                    <Label htmlFor="meeting">Meeting</Label>
+
+            {/* Meeting */}
+            <div className="flex items-center gap-2 justify-between">
+                <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] text-muted-foreground">
+                    <Calendar className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Meeting</span>
                 </div>
                 <SelectSearchable
                     value={meeting}
@@ -329,7 +400,7 @@ export default function NoteForm({
                     searchPlaceholder="Search meetings..."
                     emptyText="No meeting found."
                     showBadge={true}
-                    badgeVariant="outline"
+                    badgeVariant="green"
                     allowCreate={true}
                     createText="Add Meeting"
                     onCreateClick={handleOpenMeetingDialog}
@@ -337,17 +408,17 @@ export default function NoteForm({
                     navigationRoute="/workspace/meeting"
                 />
             </div>
-            <div className="flex items-start gap-2 mt-2">
-                {/* <div className="flex items-start gap-2 text-muted-foreground min-w-[5rem] pt-1">
-                    <File className="size-4 shrink-0 mt-0.5" />
-                    <Label htmlFor="content" className="mt-0.5">Content</Label>
+
+            {/* Description */}
+            <div className="flex items-start gap-2 justify-between">
+                {/* <div className="flex items-center gap-2 text-sm @max-sm:w-8 w-[10rem] pt-3 text-muted-foreground">
+                    <ClipboardList className="size-4 shrink-0" strokeWidth={1.5} />
+                    <span className="whitespace-nowrap @max-sm:hidden">Description</span>
                 </div> */}
-                <div className="w-full min-w-0">
-                    <Tiptap
-                        content={content}
-                        onChange={setContent}
-                        showFixedMenu={true}
-                        showBubbleMenu={true}
+                <div className="w-full">
+                    <Tiptap 
+                        content={description}
+                        onChange={(content) => setDescription(content)}
                     />
                 </div>
             </div>
@@ -369,7 +440,6 @@ export default function NoteForm({
                             initialDescription={personFormData.description}
                             initialLinkedin={personFormData.linkedin}
                             initialJobTitle={personFormData.jobTitle}
-                            availableCompanies={availableCompanies}
                             onChange={setPersonFormData}
                         />
                     </div>

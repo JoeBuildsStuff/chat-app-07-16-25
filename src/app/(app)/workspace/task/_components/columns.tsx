@@ -3,11 +3,12 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
-import { NoteWithRelations } from "../_lib/validations"
-import { User, Type, Pilcrow, Calendar } from "lucide-react"
+import { TaskWithRelations } from "../_lib/validations"
 import { Badge } from "@/components/ui/badge"
+import {Calendar, User, Milestone, Pilcrow, ArrowUpRight, Type } from "lucide-react"
+import Link from "next/link"
 
-export const columns: ColumnDef<NoteWithRelations>[] = [
+export const columns: ColumnDef<TaskWithRelations>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -46,45 +47,96 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
       const title = row.getValue("title") as string
       return (
         <div className="flex items-center gap-2">
-          <Badge 
-            key={row.original.id}
-            variant="indigo" 
-            className="text-sm font-normal"
-            href={`/workspace/note/${row.original.id}`}
+          <Link 
+            href={`/workspace/task/${row.original.id}`}
+            className="hover:underline cursor-pointer"
           >
-            {title || "Untitled Note"}
-          </Badge>
+            <span className="flex items-center gap-1">
+              {title || "Untitled Task"} <ArrowUpRight className="size-4" strokeWidth={1.5} />
+            </span>
+          </Link>
         </div>
       )
     },
     meta: {
       label: "Title",
       variant: "text",
-      placeholder: "Enter note title...",
+      placeholder: "Enter task title...",
     },
     enableColumnFilter: true,
   },
   {
-    accessorKey: "content",
+    accessorKey: "description",
     header: ({ column }) => (
       <DataTableColumnHeader 
         column={column} 
-        title="Content" 
+        title="Description" 
         icon={<Pilcrow className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
       />
     ),
     cell: ({ row }) => {
-      const content = row.getValue("content") as string
+      const description = row.getValue("description") as string
       return (
         <div className="flex items-center gap-2">
-          <span className="font-medium max-w-[400px] truncate">{content || "—"}</span>
+          <span className="text-sm text-muted-foreground">
+            {description || "No description"}
+          </span>
         </div>
       )
     },
     meta: {
-      label: "Content",
+      label: "Description",
       variant: "text",
-      placeholder: "Enter note content...",
+      placeholder: "Enter task description...",
+    },
+    enableColumnFilter: true,
+    enableHiding: true,
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => (
+      <DataTableColumnHeader 
+        column={column} 
+        title="Status" 
+        icon={<Milestone className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+      />
+    ),
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string
+      if (!status) return <div className="text-muted-foreground">—</div>
+      return <Badge variant="outline">{status}</Badge>
+    },
+    meta: {
+      label: "Status",
+      variant: "select",
+      options: [
+        { label: "To Do", value: "TO_DO" },
+        { label: "In Progress", value: "IN_PROGRESS" },
+        { label: "Done", value: "DONE" },
+        { label: "Cancelled", value: "CANCELLED" },
+      ]
+    },
+    enableColumnFilter: true,
+  },
+  {
+    accessorKey: "due_date",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Due Date" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />} />,
+    cell: ({ row }) => {
+      const dueDate = row.getValue("due_date") as string
+      if (!dueDate) return <div className="text-muted-foreground">—</div>
+      
+      const date = new Date(dueDate)
+      const formatted = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }).format(date)
+      
+      return <div className="text-sm text-muted-foreground">{formatted}</div>
+    },
+    meta: {
+      label: "Due Date",
+      variant: "date",
     },
     enableColumnFilter: true,
   },
@@ -113,8 +165,8 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
     },
   },
   {
-    id: "contact",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Contact" icon={<User className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />} />,
+    id: "assignee",
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Assignee" icon={<User className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />} />,
     cell: ({ row }) => {
       const contact = row.original.contacts
       if (!contact || (!contact.first_name && !contact.last_name)) return <div className="text-muted-foreground">—</div>
@@ -129,58 +181,12 @@ export const columns: ColumnDef<NoteWithRelations>[] = [
         </Badge>
       )
     },
-    accessorKey: "contact_id",
+    accessorKey: "assigned_to_contact_id",
     meta: {
-      label: "Contact",
+      label: "Assignee",
       variant: "select",
       // This would need to be populated from a query
       options: [],
     },
-  },
-  {
-    accessorKey: "created_at",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Created" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />} />,
-    cell: ({ row }) => {
-      const createdAt = row.getValue("created_at") as string
-      if (!createdAt) return <div className="text-muted-foreground">—</div>
-      
-      const date = new Date(createdAt)
-      const formatted = new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }).format(date)
-      
-      return <div className="text-sm text-muted-foreground">{formatted}</div>
-    },
-    meta: {
-      label: "Created",
-      variant: "date",
-      readOnly: true,
-    },
-    enableColumnFilter: true,
-  },
-  {
-    accessorKey: "updated_at",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Updated" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}  />,
-    cell: ({ row }) => {
-      const updatedAt = row.getValue("updated_at") as string
-      if (!updatedAt) return <div className="text-muted-foreground">—</div>
-      
-      const date = new Date(updatedAt)
-      const formatted = new Intl.DateTimeFormat("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }).format(date)
-      
-      return <div className="text-sm text-muted-foreground">{formatted}</div>
-    },
-    meta: {
-      label: "Updated",
-      variant: "date",
-      readOnly: true,
-    },
-    enableColumnFilter: true,
   },
 ]

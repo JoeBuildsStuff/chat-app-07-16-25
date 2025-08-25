@@ -1,7 +1,33 @@
 import { createClient } from "@/lib/supabase/server"
 import { parseSearchParams, SearchParams } from "@/lib/data-table"
-import { PersonWithRelations, Company } from "./validations"
+import { PersonWithRelations, Company, PersonEmail, PersonPhone } from "./validations"
 import { PostgrestError } from "@supabase/supabase-js"
+
+export async function getPerson(id: string): Promise<{
+  data: PersonWithRelations | null,
+  error: PostgrestError | null
+}> {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .schema("registry")
+    .from("contacts")
+    .select(`
+      *,
+      company:companies(*),
+      emails:contact_emails(*),
+      phones:contact_phones(*)
+    `)
+    .eq("id", id)
+    .single()
+  
+  if (data) {
+    // Sort emails and phones by display_order
+    data.emails = data.emails?.sort((a: PersonEmail, b: PersonEmail) => a.display_order - b.display_order) || []
+    data.phones = data.phones?.sort((a: PersonPhone, b: PersonPhone) => a.display_order - b.display_order) || []
+  }
+  
+  return { data: data ?? null, error }
+}
 
 export async function getCompanies(): Promise<{
   data: Company[],

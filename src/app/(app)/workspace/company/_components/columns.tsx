@@ -46,7 +46,14 @@ export const columns: ColumnDef<Company>[] = [
       const name = row.getValue("name") as string
       return (
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-sm font-normal">{name || "—"}</Badge>
+                <Badge 
+                  key={row.original.id}
+                  variant="outline" 
+                  className="text-sm font-normal"
+                  href={`/workspace/company/${row.original.id}`}
+                >
+                  {name}
+                </Badge>
         </div>
       )
     },

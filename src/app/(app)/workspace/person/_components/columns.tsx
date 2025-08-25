@@ -5,8 +5,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { PersonWithRelations } from "../_lib/validations"
-import { AtSign, BriefcaseBusiness, Building2, IdCard, MapPin, Phone, Pilcrow, Calendar } from "lucide-react"
+import { AtSign, BriefcaseBusiness, Building2, IdCard, MapPin, Phone, Pilcrow, Calendar, ArrowUpRight } from "lucide-react"
 import { formatPhoneNumber } from "react-phone-number-input"
+import Link from "next/link"
 
 export const columns: ColumnDef<PersonWithRelations>[] = [
   {
@@ -50,7 +51,14 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
 
       return (
         <div className="flex items-center gap-2">
-          <span className="font-medium">{displayName}</span>
+          <Link 
+            href={`/workspace/person/${row.original.id}`}
+            className="hover:underline cursor-pointer"
+          >
+            <span className="flex items-center gap-1">
+              {displayName} <ArrowUpRight className="size-4" strokeWidth={1.5} />
+            </span>
+          </Link>
         </div>
       )
     },
@@ -123,6 +131,26 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
     enableColumnFilter: true,
   },
   {
+    accessorKey: "job_title",
+    header: ({ column }) => (
+      <DataTableColumnHeader 
+        column={column} 
+        title="Title" 
+        icon={<BriefcaseBusiness className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
+      />
+    ),
+    cell: ({ row }) => {
+      const jobTitle = row.getValue("job_title") as string
+      return <div className="text-sm">{jobTitle || "—"}</div>
+    },
+    meta: {
+      label: "Job Title",
+      variant: "text",
+      placeholder: "Software Engineer",
+    },
+    enableColumnFilter: true,
+  },
+  {
     accessorKey: "description",
     header: ({ column }) => (
       <DataTableColumnHeader 
@@ -163,32 +191,20 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
     cell: ({ row }) => {
       const company = row.original.company
       if (!company) return <div className="text-muted-foreground">—</div>
-      return <Badge variant="outline" className="text-sm font-normal">{company.name}</Badge>
+      return (
+        <Badge 
+          variant="outline" 
+          className="text-sm font-normal"
+          href={`/workspace/company/${company.id}`}
+        >
+          {company.name}
+        </Badge>
+      )
     },
     meta: {
       label: "Company",
       variant: "text",
       placeholder: "Company ABC",
-    },
-    enableColumnFilter: true,
-  },
-  {
-    accessorKey: "job_title",
-    header: ({ column }) => (
-      <DataTableColumnHeader 
-        column={column} 
-        title="Title" 
-        icon={<BriefcaseBusiness className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}
-      />
-    ),
-    cell: ({ row }) => {
-      const jobTitle = row.getValue("job_title") as string
-      return <div className="text-sm">{jobTitle || "—"}</div>
-    },
-    meta: {
-      label: "Job Title",
-      variant: "text",
-      placeholder: "Software Engineer",
     },
     enableColumnFilter: true,
   },
@@ -278,18 +294,27 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
       // Extract username from LinkedIn URL
       const match = linkedin.match(/linkedin\.com\/in\/([^\/\?]+)/)
       if (match) {
-        return <Badge variant="blue" className="text-sm font-normal">@{match[1]}</Badge>
+        return (
+          <Badge 
+            variant="blue" 
+            className="text-sm font-normal"
+            href={linkedin}
+            external
+          >
+            @{match[1]}
+          </Badge>
+        )
       }
       
       return (
-        <a 
-          href={linkedin} 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 text-sm"
+        <Badge 
+          variant="outline" 
+          className="text-sm font-normal"
+          href={linkedin}
+          external
         >
           {linkedin}
-        </a>
+        </Badge>
       )
     },
     meta: {
@@ -324,7 +349,7 @@ export const columns: ColumnDef<PersonWithRelations>[] = [
   },
   {
     accessorKey: "updated_at",
-  header: ({ column }) => <DataTableColumnHeader column={column} title="Updated" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}  />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Updated" icon={<Calendar className="size-4 shrink-0 text-muted-foreground" strokeWidth={1.5} />}  />,
     cell: ({ row }) => {
       const updatedAt = row.getValue("updated_at") as string
       if (!updatedAt) return <div className="text-muted-foreground">—</div>

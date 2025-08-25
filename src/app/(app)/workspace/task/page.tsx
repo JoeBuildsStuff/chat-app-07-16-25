@@ -1,4 +1,4 @@
-import DataTablePerson from "./_components/table"
+import DataTableCompany from "./_components/table"
 
 export default async function Page({
   searchParams,
@@ -7,9 +7,12 @@ export default async function Page({
 }) {
   const params = await searchParams
 
+
+
+  
   return (
     <main className="">
-        <DataTablePerson searchParams={params} />
+      <DataTableCompany searchParams={params} />
     </main>
   )
 }
