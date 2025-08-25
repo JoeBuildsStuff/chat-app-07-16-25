@@ -23,7 +23,6 @@ import { AuthButton } from "@/components/auth-button"
 export function AppSidebar() {
   const pathname = usePathname()
 
-
   const handleCreateContact = () => {
     console.log("Create contact clicked")
   }
@@ -44,8 +43,7 @@ export function AppSidebar() {
     console.log("Create task clicked")
   }
 
-
-  const navigationItems = [
+  const relationshipItems = [
     {
       label: "People",
       href: "/workspace/person",
@@ -60,30 +58,63 @@ export function AppSidebar() {
       action: handleCreateCompany,
       actionAriaLabel: "Create new company",
     },
+  ]
+
+  const activityItems = [
     {
-      label: "Note",
-      href: "/workspace/note",
-      icon: File,
-      action: handleCreateNote,
-      actionAriaLabel: "Create new note",
-    },
-    {
-      label: "Meeting",
+      label: "Meetings",
       href: "/workspace/meeting",
       icon: Calendar,
       action: handleCreateMeeting,
       actionAriaLabel: "Create new meeting",
     },
     {
-      label: "Task",
+      label: "Notes",
+      href: "/workspace/note",
+      icon: File,
+      action: handleCreateNote,
+      actionAriaLabel: "Create new note",
+    },
+    {
+      label: "Tasks",
       href: "/workspace/task",
       icon: ListTodo,
       action: handleCreateTask,
       actionAriaLabel: "Create new task",
     },
-
   ]
 
+  const renderNavigationItems = (items: typeof relationshipItems) => {
+    return items.map((item) => (
+      <SidebarMenuItem key={item.href}>
+        <SidebarMenuButton 
+          asChild
+          className={cn(
+            "w-full justify-start",
+            pathname.startsWith(item.href)
+              ? "bg-muted/50 hover:bg-muted font-semibold"
+              : "hover:bg-muted"
+          )}
+        >
+          <Link href={item.href}>
+            <item.icon className="size-3.5 mr-2 flex-none text-muted-foreground" />
+            <span>{item.label}</span>
+          </Link>
+        </SidebarMenuButton>
+        {item.action && (
+          <SidebarMenuAction asChild>
+            <button
+              onClick={item.action}
+              className="disabled:cursor-not-allowed text-muted-foreground hover:text-foreground"
+              aria-label={item.actionAriaLabel}
+            >
+                <Plus className="size-4 text-muted-foreground" />
+            </button>
+          </SidebarMenuAction>
+        )}
+      </SidebarMenuItem>
+    ))
+  }
 
   return (
     <>
@@ -93,40 +124,22 @@ export function AppSidebar() {
         </SidebarHeader>
         <SidebarContent className="flex flex-col">
 
-          {/* Navigation */}
+          {/* Relationships */}
           <SidebarGroup>
-            <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+            <SidebarGroupLabel>Relationships</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {navigationItems.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton 
-                      asChild
-                      className={cn(
-                        "w-full justify-start",
-                        pathname.startsWith(item.href)
-                          ? "bg-muted/50 hover:bg-muted font-semibold"
-                          : "hover:bg-muted"
-                      )}
-                    >
-                      <Link href={item.href}>
-                        <item.icon className="size-3.5 mr-2 flex-none text-muted-foreground" />
-                        <span>{item.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                    {item.action && (
-                      <SidebarMenuAction asChild>
-                        <button
-                          onClick={item.action}
-                          className="disabled:cursor-not-allowed text-muted-foreground hover:text-foreground"
-                          aria-label={item.actionAriaLabel}
-                        >
-                            <Plus className="size-4 text-muted-foreground" />
-                        </button>
-                      </SidebarMenuAction>
-                    )}
-                  </SidebarMenuItem>
-                ))}
+                {renderNavigationItems(relationshipItems)}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {/* Activities */}
+          <SidebarGroup>
+            <SidebarGroupLabel>Activities</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {renderNavigationItems(activityItems)}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
