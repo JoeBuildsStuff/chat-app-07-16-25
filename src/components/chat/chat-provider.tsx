@@ -2,12 +2,16 @@
 
 import React, { createContext, useContext } from 'react'
 import { useChatStore } from '@/lib/chat/chat-store'
+import { useChatQuota } from '@/hooks/use-chat-quota'
 import type { ChatContextValue, ChatProviderProps } from '@/types/chat'
 
 const ChatContext = createContext<ChatContextValue | null>(null)
 
 export function ChatProvider({ children }: ChatProviderProps) {
   const store = useChatStore()
+  
+  // Initialize quota monitoring
+  useChatQuota()
 
   // Initialize context value that maps store to the expected interface
   const contextValue: ChatContextValue = {

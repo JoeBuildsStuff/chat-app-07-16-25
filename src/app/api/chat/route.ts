@@ -12,6 +12,7 @@ interface ChatAPIRequest {
   message: string
   context?: PageContext | null
   messages?: ChatMessage[]
+  model?: string
   attachments?: Array<{
     file: File
     name: string
@@ -47,6 +48,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<ChatAPIRe
       const message = formData.get('message') as string
       const contextStr = formData.get('context') as string
       const messagesStr = formData.get('messages') as string
+      const model = formData.get('model') as string
+      console.log('model', model)
+
       const attachmentCount = parseInt(formData.get('attachmentCount') as string || '0')
       
       const context = contextStr && contextStr !== 'null' ? JSON.parse(contextStr) : null
@@ -66,13 +70,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ChatAPIRe
         }
       }
       
-      body = { message, context, messages, attachments }
+      body = { message, context, messages, model, attachments }
     } else {
       // Handle JSON request (backward compatibility)
       body = await request.json()
     }
 
-    const { message, context, messages = [], attachments = [] } = body
+    const { message, context, messages = [], model, attachments = [] } = body
 
     // Validate input
     if (!message || typeof message !== 'string') {
@@ -82,7 +86,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ChatAPIRe
       )
     }
 
-    const response = await getLLMResponse(messages, message, context || null, attachments)
+    const response = await getLLMResponse(messages, message, context || null, attachments, model)
 
     return NextResponse.json(response)
   } catch (error) {
@@ -198,7 +202,8 @@ async function getLLMResponse(
   history: ChatMessage[],
   newUserMessage: string,
   context: PageContext | null,
-  attachments: Array<{ file: File; name: string; type: string; size: number }> = []
+  attachments: Array<{ file: File; name: string; type: string; size: number }> = [],
+  model?: string
 ): Promise<ChatAPIResponse> {
   try {
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -284,7 +289,7 @@ Guidelines:
 
     // 4. First API call
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: model || 'claude-sonnet-4-20250514',
       max_tokens: 2048,
       system: systemPrompt,
       tools: availableFunctions,
@@ -322,13 +327,13 @@ Guidelines:
             content: validToolResults
         });
 
-        // 6. Second API call
+                // 6. Second API call
         const followUpResponse = await anthropic.messages.create({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 2048,
-            system: systemPrompt,
-            tools: availableFunctions,
-            messages: messagesForAPI, // <-- send the updated history
+          model: model || 'claude-sonnet-4-20250514',
+          max_tokens: 2048,
+          system: systemPrompt,
+          tools: availableFunctions,
+          messages: messagesForAPI, // <-- send the updated history
         });
         
         const followUpContent = followUpResponse.content[0]?.type === 'text' 

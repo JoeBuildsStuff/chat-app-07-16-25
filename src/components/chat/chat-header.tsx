@@ -1,10 +1,11 @@
 'use client'
 
-import { X, ChevronLeft, SquarePen, Download, Ellipsis, PanelRight, PictureInPicture2, MessageSquareOff } from 'lucide-react'
+import { X, ChevronLeft, SquarePen, Download, Ellipsis, PanelRight, PictureInPicture2, MessageSquareOff, Database } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useChatStore } from '@/lib/chat/chat-store'
 import { cn } from '@/lib/utils'
+import { ChatQuota } from './chat-quota'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,14 +39,13 @@ export function ChatHeader() {
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [editTitle, setEditTitle] = useState('')
   const [showClearDialog, setShowClearDialog] = useState(false)
+  const [showQuotaDialog, setShowQuotaDialog] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleClose = () => {
     setOpen(false)
     setMinimized(false)
   }
-
-
 
   const handleConfirmClear = () => {
     clearMessages()
@@ -97,6 +97,10 @@ export function ChatHeader() {
     } else if (e.key === 'Escape') {
       handleTitleCancel()
     }
+  }
+
+  const handleShowQuota = () => {
+    setShowQuotaDialog(true)
   }
 
   // Focus input when editing starts
@@ -176,6 +180,29 @@ export function ChatHeader() {
                 Download chat
                 <DropdownMenuShortcut>⌘D</DropdownMenuShortcut>
               </DropdownMenuItem>
+              <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <MessageSquareOff className="mr-2 size-4" />
+                    Clear chat
+                    <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Clear Chat</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to clear the chat history? This action cannot be undone and will permanently remove all messages in this conversation.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={handleCancelClear}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleConfirmClear} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Clear
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
               <DropdownMenuSeparator />
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
@@ -207,29 +234,11 @@ export function ChatHeader() {
                 </DropdownMenuPortal>
               </DropdownMenuSub>
               <DropdownMenuSeparator />
-              <AlertDialog open={showClearDialog} onOpenChange={setShowClearDialog}>
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                    <MessageSquareOff className="mr-2 size-4" />
-                    Clear chat
-                    <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Clear Chat</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to clear the chat history? This action cannot be undone and will permanently remove all messages in this conversation.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={handleCancelClear}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleConfirmClear} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                      Clear
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <DropdownMenuItem onClick={handleShowQuota}>
+                <Database className="mr-2 size-4" />
+                Storage Quota
+                <DropdownMenuShortcut>⌘Q</DropdownMenuShortcut>
+              </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -244,6 +253,9 @@ export function ChatHeader() {
           <X className="size-4 shrink-0" />
         </Button>
       </div>
+
+      {/* ChatQuota Dialog - controlled from dropdown */}
+      <ChatQuota open={showQuotaDialog} onOpenChange={setShowQuotaDialog} />
     </div>
   )
 } 

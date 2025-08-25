@@ -13,7 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Building2, Calendar, FileText, Plus, Users } from "lucide-react"
+import { Building2, Calendar, File, ListTodo, Plus, Users } from "lucide-react"
 import { SidebarLogo } from "./app-sidebar-logo"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -40,6 +40,10 @@ export function AppSidebar() {
     console.log("Create meeting clicked")
   }
 
+  const handleCreateTask = () => {
+    console.log("Create task clicked")
+  }
+
 
   const navigationItems = [
     {
@@ -59,7 +63,7 @@ export function AppSidebar() {
     {
       label: "Note",
       href: "/workspace/note",
-      icon: FileText,
+      icon: File,
       action: handleCreateNote,
       actionAriaLabel: "Create new note",
     },
@@ -69,6 +73,13 @@ export function AppSidebar() {
       icon: Calendar,
       action: handleCreateMeeting,
       actionAriaLabel: "Create new meeting",
+    },
+    {
+      label: "Task",
+      href: "/workspace/task",
+      icon: ListTodo,
+      action: handleCreateTask,
+      actionAriaLabel: "Create new task",
     },
 
   ]

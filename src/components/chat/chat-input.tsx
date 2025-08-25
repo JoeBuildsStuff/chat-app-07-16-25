@@ -37,7 +37,7 @@ export function ChatInput() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { sendMessage } = useChat()
   const { isLoading } = useChatStore()
-  const [selectedModel, setSelectedModel] = useState('sonnet')
+  const [selectedModel, setSelectedModel] = useState('claude-sonnet-4-20250514')
 
   const handleSend = async () => {
     const trimmedInput = input.trim()
@@ -55,7 +55,7 @@ export function ChatInput() {
     }
 
     try {
-      await sendMessage(messageContent, currentAttachments)
+      await sendMessage(messageContent, currentAttachments, selectedModel)
     } finally {
       // Focus back to input
       textareaRef.current?.focus()
@@ -230,7 +230,6 @@ export function ChatInput() {
               </div>
 
               {/* Right side buttons */}
-              {/* TODO: Enable model selection in the api route */}
               <div className="flex gap-2 items-center">
                 <Select
                   value={selectedModel}
@@ -241,11 +240,9 @@ export function ChatInput() {
                     <SelectValue placeholder="Model" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="haiku">Haiku 3.5</SelectItem>
-                    <SelectItem value="sonnet">Sonnet 4</SelectItem>
-                    <SelectItem value="opus">Opus 4</SelectItem>
-                    <SelectItem value="gemini">Gemini 2.5</SelectItem>
-                    <SelectItem value="4o">4o</SelectItem>
+                    <SelectItem value="claude-3-5-haiku-20241022">Haiku 3.5</SelectItem>
+                    <SelectItem value="claude-sonnet-4-20250514">Sonnet 4</SelectItem>
+                    <SelectItem value="claude-opus-4-1-20250805">Opus 4.1</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -329,6 +326,7 @@ export function ChatInput() {
                 <div className="flex-1 overflow-auto">
                   {selectedAttachment.type.startsWith('image/') ? (
                     <div className="flex items-center justify-center p-4">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={URL.createObjectURL(selectedAttachment.file)}
                         alt={selectedAttachment.name}
