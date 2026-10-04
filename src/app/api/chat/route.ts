@@ -295,7 +295,7 @@ Guidelines:
       tools: availableFunctions,
       messages: messagesForAPI,
     });
-    
+
     // 5. Tool use handling - handle multiple parallel tool calls
     const toolUseBlocks = response.content.filter(block => block.type === 'tool_use');
 
